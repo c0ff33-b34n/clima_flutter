@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/location.dart';
@@ -32,6 +34,12 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
     if (response.statusCode == 200) {
       String data = response.body;
+      var temp = jsonDecode(data)['main']['temp'];
+      var conditionNumber = jsonDecode(data)['weather'][0]['id'];
+      var cityName = jsonDecode(data)['name'];
+      print(temp);
+      print(conditionNumber);
+      print(cityName);
     } else {
       print(response.statusCode);
     }

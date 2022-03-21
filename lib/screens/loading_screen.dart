@@ -1,9 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:clima_flutter/apikey.dart';
+import 'package:clima_flutter/services/networking.dart';
 import '../services/location.dart';
-import 'package:http/http.dart' as http;
 
 class LoadingScreen extends StatefulWidget {
   @override
@@ -13,41 +12,40 @@ class LoadingScreen extends StatefulWidget {
 class _LoadingScreenState extends State<LoadingScreen> {
   LocationPermission? permission;
   Location location = Location();
+  double? latitude;
+  double? longitude;
+
+  String apiKey = WeatherAPIKey.getAPIkey();
 
   @override
   void initState() {
     super.initState();
-    getLocation();
+    getLocationData();
   }
 
-  void getLocation() async {
+  void getLocationData() async {
     permission = await Geolocator.requestPermission();
     await location.getCurrentLocation();
+    latitude = location.latitude;
+    longitude = location.longitude;
     print(location.latitude);
     print(location.longitude);
-  }
 
-  void getData() async {
-    var url = Uri.parse(
-        'https://samples.openweathermap.org/data/2.5/weather?lat=35&lon=139&appid=b6907d289e10d714a6e88b30761fae22');
-    var response = await http.get(url);
+    NetworkHelper networkHelper = NetworkHelper(
+        'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey');
 
-    if (response.statusCode == 200) {
-      String data = response.body;
-      var temp = jsonDecode(data)['main']['temp'];
-      var conditionNumber = jsonDecode(data)['weather'][0]['id'];
-      var cityName = jsonDecode(data)['name'];
-      print(temp);
-      print(conditionNumber);
-      print(cityName);
-    } else {
-      print(response.statusCode);
-    }
+    var weatherData = await networkHelper.getData();
+
+    var temp = weatherData['main']['temp'];
+    var conditionNumber = weatherData['weather'][0]['id'];
+    var cityName = weatherData['name'];
+    print(temp);
+    print(conditionNumber);
+    print(cityName);
   }
 
   @override
   Widget build(BuildContext context) {
-    getData();
     return Scaffold(
       body: Center(),
     );
